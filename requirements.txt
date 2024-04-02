@@ -1,5 +1,1 @@
 openpyxl
-pandas
-streamlit
-Counter
-datetime
