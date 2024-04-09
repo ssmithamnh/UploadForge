@@ -6,6 +6,7 @@ from io import BytesIO
 import openpyxl 
 from collections import Counter
 
+st.title("UploadForge")
 current_year = datetime.now().year
 season_section_options = [1, 2, 'None']
 season_section = st.selectbox('Select Session Number:', season_section_options)
@@ -64,7 +65,6 @@ course_df['course_code'] = course_df['course_code'].apply(replace_year).apply(up
 course_dict = course_df.set_index('course_name')['course_code'].to_dict()
 
 def main():
-    st.title("UploadForge")
     uploaded_file = st.file_uploader('Upload Excel file', type=['xlsx'])
     if uploaded_file is not None:
         st.write('File uploaded successfully!')
