@@ -7,11 +7,13 @@ import openpyxl
 from collections import Counter
 
 current_year = datetime.now().year
-pattern = r'(\d{4})'
+season_section_options = [1, 2, 'None']
+season_section = st.selectbox('Select Session Number:', season_section_options)
 ############## COURSE DICTIONARY ##############
 course_name = {
 "The Brain: Structure, Function and Evolution": "SOS_2017_SP1_LS507",
 "Climate Change": "SOS_2017_SP1_ES504",
+"SOS_2024_SP2_ES504" : "SOS_2017_SP1_ES504",
 "The Diversity of Fishes": "SOS_2017_SP1_LS501",
 "Earth: Inside and Out": "SOS_2017_SP1_ES501",
 "Ecology: Ecosystem Dynamics and Conservation": "SOS_2022_SU2_LS508",
@@ -26,6 +28,40 @@ course_name = {
 "Space, Time and Motion": "SOS_2017_SP1_PS501",
 "Water": "SOS_2017_SP1_ES503"
 }
+
+def replace_year(course_code):
+    current_year = datetime.now().year
+    return re.sub(r'\d{4}', str(current_year), course_code)
+
+def update_season(course_code):
+    month = datetime.now().month
+    if 5 <= month <= 8:
+        current_season = "SU"
+    elif 9 <= month <= 12:
+        current_season = "FA"
+    elif 1 <= month <= 2:
+        current_season = "W"
+    elif 3 <= month <= 4:
+        current_season = "SP"
+    
+    if season_section in [1, 2]:
+        current_season += str(season_section)
+    elif season_section == 'None':
+        pass  # Do nothing, keep the current season without a section number
+
+    # Replace the season and section in the course code
+    course_code = re.sub(r'(SU|FA|W|SP)\d?', current_season, course_code)
+    return course_code
+
+course_df = pd.DataFrame.from_dict(course_name, orient='index', columns=['course_code'])
+course_df.reset_index(inplace=True)
+course_df.rename(columns={'index': 'course_name'}, inplace=True)
+# Apply the updates to the DataFrame
+course_df['course_code'] = course_df['course_code'].apply(replace_year).apply(update_season)
+
+# Apply extensions to the course codes
+
+course_dict = course_df.set_index('course_name')['course_code'].to_dict()
 
 def main():
     st.title("UploadForge")
@@ -43,30 +79,6 @@ def main():
             file_name='final_data.csv',
             mime='text/csv'
         )
-def replace_year(string):
-    return re.sub(pattern, str(current_year), string)
-
-def update_season(course_code):
-        month = datetime.now().month
-        if 3 <= month <= 5:
-            current_season = "SP1"
-        elif 6 <= month <= 8:
-            current_season = "SU1"
-        elif 9 <= month <= 11:
-            current_season = "FA1"
-        elif month == 12:
-            current_season = "W1"
-        elif month == 1:
-            current_season = "W2"
-        elif 2 <= month <= 5:
-            current_season = "SP2"
-        elif 6 <= month <= 8:
-            current_season = "SU2"
-        elif 9 <= month <= 11:
-            current_season = "FA2"
-        elif month == 12:
-            current_season = "W2"
-        return re.sub(r'(SU|FA|W|SP)\d*', current_season, course_code)
 
 def counts_odd(series):
     counts_dict = dict()
@@ -74,7 +86,7 @@ def counts_odd(series):
         counts_dict[item] = counts_dict.get(item, 0) + 1
 
     # Check for values with 30 or more occurrences
-    keys_to_split = [key for key, value in counts_dict.items() if value >= 30]
+    keys_to_split = [key for key, value in counts_dict.items() if value >= 35]
     
     # Iterate over keys to split occurrences
     for key in keys_to_split:
@@ -84,7 +96,7 @@ def counts_odd(series):
         if counts_dict[key] % 2 != 0:
             split_index += 1
         # Assign the first half as {f}_1 and the second half as {f}_2
-        for i, item in series.items():
+        for i, item in enumerate(series):
             if item == key:
                 if split_index > 0:
                     series[i] = f"{key}_1"
@@ -92,19 +104,10 @@ def counts_odd(series):
                 else:
                     series[i] = f"{key}_2"
 
-    return counts_dict, series
+    return series
 
 def process_excel(file):
     # Convert the dictionary to a DataFrame
-    course_df = pd.DataFrame.from_dict(course_name, orient='index', columns=['course_code'])
-    course_df.reset_index(inplace=True)
-    course_df.rename(columns={'index': 'course_name'}, inplace=True)
-    course_df['course_code'] = course_df['course_code'].apply(replace_year)
-    course_df['course_code'] = course_df.apply(lambda row: update_season(row['course_code']), axis=1)
-    
-    # Apply extensions to the course codes
-    
-    course_dict = course_df.set_index('course_name')['course_code'].to_dict()
     new_file = pd.read_excel(file, usecols=['People::First Name', 'People::Last Name',
                                              'People::Email 1', 'Person ID', 'Courses::Name'])
     new_file = new_file.rename(columns={'People::First Name': 'firstname', 'People::Last Name': 'lastname',
@@ -119,8 +122,7 @@ def process_excel(file):
     final_final_csv = final_csv[['firstname', 'lastname', 'password', 'username', 'email', 'department',
                                  'profile_field_sospersonid', 'course1', 'role1', 'course2']]
     column_series = final_final_csv['course2']
-    counts_odd(column_series)
-    final_final_csv['course2'] = column_series.values
+    final_final_csv['course2'] = counts_odd(column_series.tolist())
     return final_final_csv
 
 
