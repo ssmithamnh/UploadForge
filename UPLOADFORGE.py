@@ -7,6 +7,9 @@ import openpyxl
 from collections import Counter
 
 st.title("UploadForge")
+image_path = 'upload_forge_logo.webp'  # Adjust the path to your image file
+st.image(image_path, caption='UploadForge', width=500)
+st.divider()
 current_year = datetime.now().year
 season_section_options = [1, 2, 'None']
 season_section = st.selectbox('Select Session Number:', season_section_options)
