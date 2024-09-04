@@ -30,7 +30,8 @@ course_name = {
 "Sharks and Rays": "SOS_2017_SP1_LS504",
 "The Solar System": "SOS_2017_SP1_PS502",
 "Space, Time and Motion": "SOS_2017_SP1_PS501",
-"Water": "SOS_2017_SP1_ES503"
+"Water": "SOS_2017_SP1_ES503",
+"Virology and Epidemiology": "SOS_2024_FA1_LS510"
 }
 
 def replace_year(course_code):
