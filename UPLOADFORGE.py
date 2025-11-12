@@ -113,10 +113,10 @@ def counts_odd(series):
 def process_excel(file):
     # Convert the dictionary to a DataFrame
     new_file = pd.read_excel(file, usecols=['People::First Name', 'People::Last Name',
-                                             'People::Email 1', 'Person ID', 'Courses::Name'])
+                                             'People::Email 1', 'Person ID', 'Courses::Name', "Partner"])
     new_file = new_file.rename(columns={'People::First Name': 'firstname', 'People::Last Name': 'lastname',
                                         'People::Email 1': 'username', 'Person ID': 'profile_field_sospersonid',
-                                        'Courses::Name': 'course2'})
+                                        'Courses::Name': 'course2', "Partner":"institution"})
     new_file['department'] = 'SOS_HOME'
     new_file['course1'] = 'SOS_HOME'
     new_file['role1'] = 'student'
@@ -124,7 +124,7 @@ def process_excel(file):
     new_file['password'] = 'AMNH4dinos'
     final_csv = new_file.replace({"course2": course_dict})
     final_final_csv = final_csv[['firstname', 'lastname', 'password', 'username', 'email', 'department',
-                                 'profile_field_sospersonid', 'course1', 'role1', 'course2']]
+                                 'profile_field_sospersonid', 'course1', 'role1', 'course2', "institution"]]
     column_series = final_final_csv['course2']
     final_final_csv['course2'] = counts_odd(column_series.tolist())
     return final_final_csv
